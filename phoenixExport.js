@@ -224,7 +224,7 @@ function keep_only_subpart(volume, paths) {
  *      + a boolean or a float between 0 and 1 defining the default visibility of the part
  *        false means not visible, true means visible, float means visible with that opacity
  */
-async function internal_convert_geometry(obj, filename, max_level, subparts, hide_children, body) {
+async function internal_convert_geometry(obj, filename, max_level, subparts, hide_children, body, nFaces) {
     const geo = await JSROOT.require('geom')
     const scenes = [];
     // for each geometry subpart, duplicate the geometry and keep only the subpart
@@ -238,7 +238,7 @@ async function internal_convert_geometry(obj, filename, max_level, subparts, hid
         // dump to gltf, using one scene per subpart
         // set nb of degrees per face for circles approximation (default 6)
         // here 15 means circles are polygones with 24 faces (default 60)
-        geo.geoCfg('GradPerSegm', 15);
+        geo.geoCfg('GradPerSegm', 360/nFaces);
         const paths = entry[0];
         const visibility = entry[1];
         // extract subpart of ROOT geometry
@@ -260,12 +260,12 @@ async function internal_convert_geometry(obj, filename, max_level, subparts, hid
     await forceDisplay()
     await convert_geometry(scenes, filename, body);}
    
-async function convertGeometry(inputFile, outputFile, max_level, subparts, hide_children, objectName = "Default") {
+async function convertGeometry(inputFile, outputFile, max_level, subparts, hide_children, objectName = "Default", nFaces = 24) {
     const body = document.body
     body.innerHTML = "<h1>Converting ROOT geometry to GLTF</h1>Input file : " + inputFile + "</br>Output file : " + outputFile + "</br>Reading input..." 
     const file = await JSROOT.openFile(inputFile)
     const obj = await file.readObject(objectName + ";1")
-    await internal_convert_geometry(obj, outputFile, max_level, subparts, hide_children, body)
+    await internal_convert_geometry(obj, outputFile, max_level, subparts, hide_children, body, nFaces)
     body.innerHTML += "<h1>Convertion succeeded !</h1>"
 }
 
